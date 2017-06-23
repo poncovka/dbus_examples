@@ -4,23 +4,17 @@ from pydbus import SessionBus
 from pydbus.generic import signal
 from gi.repository import GLib
 
-
-class MyDBUSService(object):
+class MyDBUSParent(object):
     """
         <node>
-            <interface name='net.lew21.pydbus.ClientServerExample'>
+            <interface name='net.lew21.pydbus.ClientServerParent'>
                 <method name='Echo'>
                     <arg type='s' name='a' direction='in'/>
                     <arg type='s' name='response' direction='out'/>
                 </method>
-                <method name='Quit'/>
-                <property name="SomeProperty" type="s" access="readwrite">
-                    <annotation name="org.freedesktop.DBus.Property.EmitsChangedSignal" value="true"/>
-                </property>
             </interface>
         </node>
     """
-
     PropertiesChanged = signal()
 
     def __init__(self):
@@ -36,13 +30,38 @@ class MyDBUSService(object):
         print("Set SomeProperty to value:", value)
         self._someProperty = value
 
-        # Emit signal.
+        # Emit signal: Use the correct object path???
         self.PropertiesChanged.emit("net.lew21.pydbus.ClientServerExample", {"SomeProperty": self._someProperty}, [])
 
     def Echo(self, s):
         """Returns whatever is passed to it"""
         print("Echo was called.")
         return s
+
+class MyDBUSService(MyDBUSParent):
+    """
+        <node>
+
+            <interface name='net.lew21.pydbus.ClientServerParent'>
+                <method name='Echo'>
+                    <arg type='s' name='a' direction='in'/>
+                    <arg type='s' name='response' direction='out'/>
+                </method>
+            </interface>
+
+            <interface name='net.lew21.pydbus.ClientServerExample'>
+                <method name='Quit'/>
+                <property name="SomeProperty" type="s" access="readwrite">
+                    <annotation name="org.freedesktop.DBus.Property.EmitsChangedSignal" value="true"/>
+                </property>
+            </interface>
+
+        </node>
+    """
+
+    def __init__(self):
+        super().__init__()
+        self._someProperty = "Another initial value!"
 
     def Quit(self):
         """Removes this object from the DBUS connection and exits"""
