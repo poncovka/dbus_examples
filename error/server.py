@@ -1,8 +1,8 @@
 #!/usr/bin/python3
+from gi.repository import GLib
 
 from pydbus import SessionBus
-from pydbus.generic import signal
-from gi.repository import GLib
+from errors import ServerError
 
 
 class MyDBUSService(object):
@@ -13,36 +13,13 @@ class MyDBUSService(object):
                     <arg type='s' name='a' direction='in'/>
                     <arg type='s' name='response' direction='out'/>
                 </method>
-                <method name='Quit'/>
-                <property name="SomeProperty" type="s" access="readwrite">
-                    <annotation name="org.freedesktop.DBus.Property.EmitsChangedSignal" value="true"/>
-                </property>
             </interface>
         </node>
     """
-
-    PropertiesChanged = signal()
-
-    def __init__(self):
-        self._someProperty = "Some initial value!"
-
-    @property
-    def SomeProperty(self):
-        print("Get SomeProperty with value:", self._someProperty)
-        return self._someProperty
-
-    @SomeProperty.setter
-    def SomeProperty(self, value):
-        print("Set SomeProperty to value:", value)
-        self._someProperty = value
-
-        # Emit signal.
-        self.PropertiesChanged.emit("net.lew21.pydbus.ClientServerExample", {"SomeProperty": self._someProperty}, [])
-
     def Echo(self, s):
         """Returns whatever is passed to it"""
         print("Echo was called, raising Exception.")
-        raise AttributeError("Some error!")
+        raise ServerError("Some error!")
 
     def Quit(self):
         """Removes this object from the DBUS connection and exits"""
